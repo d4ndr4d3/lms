@@ -24,7 +24,12 @@ bench set-redis-socketio-host redis://redis:6379
 sed -i '/redis/d' ./Procfile
 sed -i '/watch/d' ./Procfile
 
-bench get-app lms
+# Si /workspace es el repo (imagen Coolify), instalar desde ahí; si no, desde git
+if [ -f /workspace/setup.py ]; then
+  bench get-app /workspace
+else
+  bench get-app lms
+fi
 
 bench new-site lms.localhost \
 --force \

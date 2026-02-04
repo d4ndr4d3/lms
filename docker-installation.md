@@ -40,23 +40,19 @@ $ docker-compose up
 
 Para lograr el mismo resultado que en Docker Desktop usando Coolify:
 
-1. **No uses "Service" con compose pegado (Raw Compose)**  
-   El compose monta el código del repo en `/workspace`. En Raw Compose Coolify no clona el repo, así que `/workspace` queda vacío y falla `init.sh`.
-
-2. **Usa una Aplicación desde GitHub con Docker Compose**
+1. **Usa una Aplicación desde GitHub con Docker Compose**
    - Crea un **Proyecto** y dentro una **Aplicación**.
    - Origen: **GitHub** (repositorio `frappe/lms` o tu fork).
    - Build pack: **Docker Compose**.
-   - Ruta del archivo compose: **`docker-compose.coolify.yml`** (está en la raíz del repo).
-   - Asegúrate de que Coolify ejecute el compose desde la **raíz del repositorio**, para que el volumen `.:/workspace` sea el repo completo y exista `docker/init.sh`.
+   - Ruta del archivo compose: **`docker-compose.coolify.yml`** (en la raíz del repo).
 
-3. **Diferencias del compose para Coolify**
-   - En la raíz del repo está `docker-compose.coolify.yml`.
-   - Usa volumen `.:/workspace` (raíz del repo) y comando `bash /workspace/docker/init.sh`.
-   - Incluye `depends_on` para que `frappe` espere a MariaDB y Redis.
+2. **Por qué funciona aunque Coolify reemplace volúmenes**
+   - Coolify suele cambiar `.:/workspace` por un volumen nombrado (vacío), por eso fallaba `init.sh`.
+   - En `docker-compose.coolify.yml` el servicio **frappe** se **construye** con `docker/Dockerfile`: el repo se copia **dentro de la imagen** en `/workspace`. No hay bind mount: `/workspace` viene de la imagen y siempre tiene `docker/init.sh` y el código del app.
+   - Sin mapeo de puertos al host se evita "port is already allocated"; el proxy de Coolify enruta por dominio.
 
-4. **Dominio y puertos en Coolify**  
-   Usa `docker-compose.coolify.yml` (sin mapeo de puertos al host). Así se evita el error "port is already allocated". Asigna un dominio al servicio **frappe** y en el dominio indica el puerto 8000, por ejemplo `http://tudominio.com:8000`, para que el proxy enrute al contenedor.
+3. **Dominio en Coolify**  
+   Asigna un dominio al servicio **frappe** y en la configuración del dominio indica el puerto **8000** (p. ej. `http://tudominio.com:8000`) para que el proxy enrute al contenedor.
 
-5. **Credenciales**  
-   Tras el primer despliegue, usa Usuario: **Administrator**, Contraseña: **admin** (o las que definas por variables de entorno si las configuras).
+4. **Credenciales**  
+   Tras el primer despliegue: Usuario **Administrator**, Contraseña **admin** (o las que definas por variables de entorno).

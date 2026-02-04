@@ -1,6 +1,8 @@
 # Docker Compose para Coolify
-# - Sin "ports" en frappe: evita "port is already allocated"; el proxy de Coolify enruta por dominio.
-# - Usar desde la raíz del repo; en Coolify: ruta del compose = docker-compose.coolify.yml
+# - frappe se construye con Dockerfile: el repo va dentro de la imagen en /workspace,
+#   así Coolify puede reemplazar volúmenes y sigue existiendo init.sh.
+# - Sin "ports": evita "port is already allocated"; el proxy enruta por dominio.
+# En Coolify: ruta del compose = docker-compose.coolify.yml (raíz del repo).
 
 version: "3.7"
 name: lms
@@ -21,7 +23,10 @@ services:
     image: redis:alpine
 
   frappe:
-    image: frappe/bench:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: lms-frappe:latest
     depends_on:
       - mariadb
       - redis
@@ -29,9 +34,8 @@ services:
     environment:
       - SHELL=/bin/bash
     working_dir: /home/frappe
-    volumes:
-      - .:/workspace
-    # Sin ports: Coolify enruta por dominio (asigna dominio al servicio frappe con :8000)
+    # Sin volumes: /workspace viene de la imagen (Coolify no puede vaciarlo).
+    # Sin ports: el proxy de Coolify enruta por dominio (puerto 8000 en la UI).
 
 volumes:
   mariadb-data:
