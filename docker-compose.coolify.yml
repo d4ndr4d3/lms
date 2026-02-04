@@ -1,3 +1,7 @@
+# Docker Compose para Coolify
+# - Sin "ports" en frappe: evita "port is already allocated"; el proxy de Coolify enruta por dominio.
+# - Usar desde la raíz del repo; en Coolify: ruta del compose = docker-compose.coolify.yml
+
 version: "3.7"
 name: lms
 services:
@@ -7,7 +11,7 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --skip-character-set-client-handshake
-      - --skip-innodb-read-only-compressed # Temporary fix for MariaDB 10.6
+      - --skip-innodb-read-only-compressed
     environment:
       MYSQL_ROOT_PASSWORD: 123
     volumes:
@@ -21,15 +25,13 @@ services:
     depends_on:
       - mariadb
       - redis
-    command: bash /workspace/init.sh
+    command: bash /workspace/docker/init.sh
     environment:
       - SHELL=/bin/bash
     working_dir: /home/frappe
     volumes:
       - .:/workspace
-    ports:
-      - 8000:8000
-      - 9000:9000
+    # Sin ports: Coolify enruta por dominio (asigna dominio al servicio frappe con :8000)
 
 volumes:
   mariadb-data:
