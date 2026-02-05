@@ -15,7 +15,7 @@ services:
       - --skip-character-set-client-handshake
       - --skip-innodb-read-only-compressed
     environment:
-      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-123}
     volumes:
       - mariadb-data:/var/lib/mysql
 
@@ -33,6 +33,10 @@ services:
     command: bash /workspace/docker/init.sh
     environment:
       - SHELL=/bin/bash
+      # Opcionales: override en Coolify para tu entorno
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-123}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - SITE_NAME=${SITE_NAME:-lms.localhost}
     working_dir: /home/frappe
     # Sin volumes: /workspace viene de la imagen (Coolify no puede vaciarlo).
     # Sin ports: el proxy de Coolify enruta por dominio (puerto 8000 en la UI).
